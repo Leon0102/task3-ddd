@@ -6,7 +6,7 @@ import { UserEntity } from "src/user/domain/entity/user.entity";
 import { CreateUserCommand } from "./create-user.command";
 import { UsersService } from "src/user/domain/users.service";
 import { IUserRepository } from "src/user/domain/user.repository";
-import { Inject, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, NotFoundException } from "@nestjs/common";
 // import { UserCreatedEvent } from "../../domain/event/user-created.event";
 
 
@@ -22,7 +22,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
     async execute(command: CreateUserCommand) {
         const isExist = await this.userRepository.checkExistEmail(command.email);
         if (isExist) {
-            throw new NotFoundException('Email already exists');
+            throw new BadRequestException('Email already exists');
         }
         const newUser = new UserEntity(command.name, command.email, command.password);
         await newUser.setPassword(command.password);

@@ -46,6 +46,12 @@ export class UsersController {
         return this.historyService.getAllHistoryByUser(req.user.id);
     }
 
+    @Get('/me')
+    @UseGuards(AuthGuard('jwt'))
+    async getCurrentUser(@Req() req: any) {
+        return req.user;
+    }
+
     @Get('/:id')
     async findUserById(@Param('id') id: number): Promise<UserEntity> {
         return this.queryBus.execute(new GetOneUserQuery(id));
@@ -77,6 +83,9 @@ export class UsersController {
     login(@Body() loginUser: LoginUserDTO) {
         return this.commandBus.execute(new LoginUserCommand(loginUser.email, loginUser.password));
     }
+
+
+
 
     @Post('refresh-token')
     @UseGuards(AuthGuard('jwt-refreshtoken'))

@@ -1,15 +1,24 @@
 /* eslint-disable prettier/prettier */
+import { Inject, NotFoundException } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
-import { UsersService } from "src/user/domain/users.service";
+import { IUserRepository } from "src/user/domain/user.repository";
 import { DeleteUserCommand } from "./delete-user.command";
 
 @CommandHandler(DeleteUserCommand)
 export class DeleteUserHandler implements ICommandHandler<DeleteUserCommand> {
     constructor(
-        private readonly userService: UsersService,
+        @Inject('UserRepository')
+        private readonly userRepository: IUserRepository,
     ) { }
 
-    async execute(command: DeleteUserCommand): Promise<void> {
-        await this.userService.delete(command.id);
+    async execute(command: DeleteUserCommand): Promise<any> {
+        const user = await this.userRepository.getOne(command.id);
+        if (user) {
+            return await this.userRepository.deleteOne(command.id);
+        }
+        else {
+            throw new NotFoundException('User not found');
+        }
+
     }
 }

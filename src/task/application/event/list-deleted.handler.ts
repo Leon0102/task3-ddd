@@ -1,19 +1,19 @@
 /* eslint-disable prettier/prettier */
-
-import { EventBus, EventsHandler, IEventHandler } from "@nestjs/cqrs";
-import { ListDeletedEvent } from "src/list/domain/event/list-deleted.event";
-import { TasksService } from "src/task/domain/task/tasks.service";
+import { EventsHandler, IEventHandler } from "@nestjs/cqrs";
+import { ListDeletedEvent } from "src/project/domain/event/list-deleted.event";
+import { Inject } from "@nestjs/common";
+import { ITaskRepository } from "src/task/domain/task/task.repository";
 
 @EventsHandler(ListDeletedEvent)
 export class ListDeletedHandler implements IEventHandler<ListDeletedEvent> {
     constructor(
-        private readonly eventBus: EventBus,
-        private readonly taskService: TasksService
+        @Inject('TaskRepository')
+        private readonly taskRepository: ITaskRepository,
     ) { }
     async handle({ id }: ListDeletedEvent): Promise<void> {
-        const tasks = await this.taskService.findTasksByListId(id);
+        const tasks = await this.taskRepository.findTasksByListId(id);
         for (const task of tasks) {
-            await this.taskService.delete(task.id);
+            await this.taskRepository.deleteOne(task.id);
         }
         console.log('ListDeletedEvent');
     }

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { Module, Provider } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { AuthService } from 'src/user/domain/auth.service';
 // import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
@@ -13,6 +13,12 @@ import { CqrsModule } from '@nestjs/cqrs';
 
 dotenv.config();
 
+
+export const UserRepoProvider: Provider = {
+  provide: 'UserRepository',
+  useClass: UserRepository
+}
+
 @Module({
   imports: [JwtModule.register({
     secret: process.env.JWT_SECRET,
@@ -20,7 +26,7 @@ dotenv.config();
   }),
   TypeOrmModule.forFeature([UserRepository]),
     CqrsModule],
-  providers: [AuthService, JwtService, JwtStrategy, JwtRefreshTokenStrategy, UsersService, Object],
+  providers: [UserRepoProvider, AuthService, JwtService, JwtStrategy, JwtRefreshTokenStrategy, UsersService],
   exports: [AuthService, UsersService],
 })
 export class AuthModule { }

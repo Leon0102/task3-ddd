@@ -1,9 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { Module, Provider } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-// import { AuthModule } from 'src/modules/auth/auth.module';
-// import { AuthService } from 'src/modules/auth/auth.service';
 import { UsersController } from 'src/user/application/users.controller';
 import { AuthService } from 'src/user/domain/auth.service';
 import { UsersService } from 'src/user/domain/users.service';
@@ -16,14 +14,23 @@ import { GetOneUserHandler } from './application/query/get-one-user.handler';
 import { UpdateUserHandler } from './application/command/update-user.handler';
 import { DeleteUserHandler } from './application/command/delete-user.handler';
 import { RestoreUserHandler } from './application/command/restore-user.handler';
+import { LoginUserHandler } from './application/command/login-user.handler';
+import { HistoryService } from 'src/history/history.service';
+import { HistoryRepository } from 'src/history/history.repository';
+
+export const UserRepoProvider: Provider = {
+  provide: 'UserRepository',
+  useClass: UserRepository
+}
+
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserRepository]),
+    TypeOrmModule.forFeature([UserRepository, HistoryRepository]),
     AuthModule,
     CqrsModule,],
   controllers: [UsersController],
-  providers: [Object, UsersService, JwtService, AuthService, GetUsersHandler, CreateUserHandler, GetOneUserHandler, UpdateUserHandler, DeleteUserHandler, RestoreUserHandler],
-  exports: [UsersService]
+  providers: [UserRepoProvider, UsersService, JwtService, AuthService, HistoryService, GetUsersHandler, CreateUserHandler, GetOneUserHandler, UpdateUserHandler, DeleteUserHandler, RestoreUserHandler, LoginUserHandler],
+  exports: [UsersService, UserRepoProvider]
 })
 export class UsersModule { }

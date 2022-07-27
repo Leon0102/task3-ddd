@@ -1,25 +1,23 @@
 /* eslint-disable prettier/prettier */
+import { Inject, NotFoundException } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { ProjectEntity } from "src/project/domain/project.entity";
-import { ProjectsService } from "src/project/domain/projects.service";
-import { ProjectRepository } from "src/project/infrastructure/repository/project.repository";
+import { IProjectRepository } from "src/project/domain/project.repository";
 import { GetOneProjectQuery } from "./get-one-project.query";
 
 
 @QueryHandler(GetOneProjectQuery)
 export class GetOneProjectHandler implements IQueryHandler<GetOneProjectQuery> {
     constructor(
-        private readonly projectRepository: ProjectRepository,
-        private readonly projectsService: ProjectsService
+        @Inject('ProjectRepository')
+        private readonly projectRepository: IProjectRepository,
     ) { }
 
     async execute(query: GetOneProjectQuery): Promise<ProjectEntity> {
-        const project = await this.projectsService.findOneProject(query.getId(), query.getUserId());
-        for (const user of project.users) {
-            delete user.password;
-            delete user.refreshToken;
-            delete user.refreshtokenexpires;
+        if (!await this.projectRepository.checkProjectOfUser(query.id, query.userId)) {
+            throw new NotFoundException('Project not found');
         }
+        const project = await this.projectRepository.getOne(query.id);
         return project;
     }
 }

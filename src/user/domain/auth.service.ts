@@ -4,8 +4,8 @@ import * as randtoken from 'rand-token';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from './users.service';
-
+// import { CreateUserDTO } from 'src/users/model/dto/create-user.dto';
+import { UsersService } from 'src/user/domain/users.service';
 
 @Injectable()
 export class AuthService {
@@ -22,14 +22,6 @@ export class AuthService {
         });
     }
 
-    async hashPassword(password: string): Promise<string> {
-        return bcrypt.hash(password, 10);
-    }
-
-    async comparePassword(password: string, hash: string): Promise<boolean> {
-        return bcrypt.compare(password, hash);
-    }
-
     async generateRefreshToken(userId: number): Promise<string> {
         const refreshToken = randtoken.generate(32);
         const expirydate = new Date();
@@ -38,7 +30,7 @@ export class AuthService {
         return refreshToken
     }
 
-    async login(user: any) {
+    async refreshToken(user: any) {
         return {
             accessToken: await this.generateJwt(user),
             refreshToken: await this.generateRefreshToken(user.id)

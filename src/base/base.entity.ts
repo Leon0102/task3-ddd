@@ -11,8 +11,16 @@ import {
     VersionColumn,
 } from 'typeorm';
 
+export interface IBaseEntity {
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date;
+    version: number;
+}
+
+
 @Entity()
-export class BaseEntity {
+export class BaseEntity implements IBaseEntity {
     @CreateDateColumn()
     @Exclude()
     createdAt: Date = new Date();

@@ -1,11 +1,13 @@
 /* eslint-disable prettier/prettier */
 import { AttachmentEntity } from '../attachment/attachment.entity';
 import { LabelEntity } from '../label/label.entity';
-import { ListEntity } from 'src/list/domain/list.entity';
+import { ListEntity } from 'src/project/domain/list.entity';
 import { UserEntity } from 'src/user/domain/entity/user.entity';
 import { TodoEntity } from '../todo/todo.entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { BaseEntity } from 'src/base/base.entity';
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from 'typeorm';
+import { BaseEntity, IBaseEntity } from 'src/base/base.entity';
+import { AggregateRoot } from '@nestjs/cqrs';
+import { Exclude } from 'class-transformer';
 
 export enum Priority {
     HIGH = 'High',
@@ -15,7 +17,7 @@ export enum Priority {
 
 
 @Entity({ name: 'tasks' })
-export class TaskEntity extends BaseEntity {
+export class TaskEntity extends AggregateRoot implements IBaseEntity {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -30,13 +32,13 @@ export class TaskEntity extends BaseEntity {
     })
     priority: Priority;
 
-    @Column()
+    @Column({ nullable: true })
     DueDate: Date;
 
     @Column()
     description: string;
 
-    @Column()
+    @Column({ nullable: true })
     userId: number;
 
     @ManyToOne(() => ListEntity, list => list.tasks)
@@ -54,12 +56,33 @@ export class TaskEntity extends BaseEntity {
     @Column({ default: false })
     isDone: boolean;
 
-    @ManyToMany(() => UserEntity, user => user.tasks, { cascade: true })
+    @ManyToMany(() => UserEntity, user => user.tasks, { cascade: true, lazy: true })
     users: UserEntity[];
 
     @ManyToMany(() => LabelEntity, label => label.tasks)
-    @JoinTable()
+    @JoinTable({ name: "Label_Tasks" })
     labels: LabelEntity[];
+
+    @CreateDateColumn()
+    @Exclude()
+    createdAt: Date = new Date();
+
+    @UpdateDateColumn()
+    @Exclude()
+    updatedAt: Date = new Date();
+
+    @DeleteDateColumn()
+    @Exclude()
+    deletedAt: Date;
+
+    @VersionColumn()
+    @Exclude()
+    version = 0;
+
+    @BeforeUpdate()
+    updateVersion() {
+        this.version++;
+    }
 
     @BeforeInsert()
     setDefaultPriority(): void {
@@ -70,5 +93,53 @@ export class TaskEntity extends BaseEntity {
     setDefaultDueDate(): void {
         this.DueDate = new Date();
         this.DueDate.setDate(this.DueDate.getDate() + 7);
+    }
+
+    constructor(name: string, description: string, listId: number, userId: number) {
+        super();
+        this.name = name;
+        this.description = description;
+        this.listId = listId;
+        this.userId = userId;
+    }
+
+    updateTask(userId: number,
+        id: number,
+        name: string,
+        description: string,
+        priority: Priority,
+        DueDate: Date,
+    ) {
+        this.userId = userId;
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.priority = priority;
+        this.DueDate = DueDate;
+    }
+
+
+
+    async addUser(user: UserEntity) {
+        (await this.users).push(user);
+    }
+
+    async removeUser(user: UserEntity) {
+        for (let i = 0; i < (await this.users).length; i++) {
+            if ((await this.users)[i].id === user.id) {
+                (await this.users).splice(i, 1);
+            }
+        }
+    }
+    assignLabel(label: LabelEntity) {
+        (this.labels).push(label);
+    }
+
+    async removeLabel(label: LabelEntity) {
+        for (let i = 0; i < (await this.labels).length; i++) {
+            if ((await this.labels)[i].id === label.id) {
+                (await this.labels).splice(i, 1);
+            }
+        }
     }
 }

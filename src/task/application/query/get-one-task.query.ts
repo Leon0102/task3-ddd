@@ -1,10 +1,7 @@
 /* eslint-disable prettier/prettier */
 export class GetOneTaskQuery {
     constructor(
-        private readonly id: number,
+        readonly id: number,
+        readonly userId: number,
     ) { }
-
-    public getId(): number {
-        return this.id;
-    }
 }

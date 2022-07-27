@@ -1,16 +1,15 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
-import { TaskRepository } from 'src/task/infrastructure/repository/task.repository';
+import { Inject, Injectable } from '@nestjs/common';
+import { ITaskRepository } from './task.repository';
 @Injectable()
 export class TasksService {
     constructor(
-        private readonly taskRepository: TaskRepository,
+        @Inject('TaskRepository')
+        private readonly taskRepository: ITaskRepository,
     ) { }
-    async findTasksByListId(listId: number): Promise<any> {
-        return this.taskRepository.findTasksByListId(listId);
-    }
 
-    async delete(id: number): Promise<any> {
-        return this.taskRepository.deleteOne(id);
+    async checkTaskOfUser(userId: number, taskId: number): Promise<boolean> {
+        const isExist = await this.taskRepository.checkTaskOfUser(taskId, userId);
+        return isExist;
     }
 }

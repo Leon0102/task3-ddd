@@ -11,6 +11,5 @@ export interface IProjectRepository extends IGenericRepository<ProjectEntity> {
     findByName(name: string): Promise<ProjectEntity>;
     checkProjectOfUser(projectId: number, userId: number): Promise<boolean>;
     getOne(projectId: number): Promise<ProjectEntity>;
-    checkProjectOfUser(projectId: number, userId: number): Promise<boolean>;
     deleteOne(id: number): Promise<ProjectEntity>;
 }

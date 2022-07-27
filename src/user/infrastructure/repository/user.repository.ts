@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { UserEntity } from 'src/user/domain/entity/user.entity';
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, getRepository, Repository } from 'typeorm';
 import { IUserRepository } from 'src/user/domain/user.repository';
 
 @EntityRepository(UserEntity)
@@ -10,17 +10,21 @@ export class UserRepository extends Repository<UserEntity> implements IUserRepos
         return !!userExist;
     }
 
+    async saveOne(user: UserEntity): Promise<UserEntity> {
+        return await getRepository(UserEntity).save(user);
+    }
+
     async checkExist(id: number): Promise<boolean> {
-        const userExist = await this.findOne(id);
+        const userExist = await getRepository(UserEntity).findOne(id);
         return !!userExist;
     }
 
     async findAll(): Promise<UserEntity[]> {
-        return await this.find();
+        return await getRepository(UserEntity).find();
     }
 
     async getOne(id: number): Promise<UserEntity | null> {
-        return this.createQueryBuilder('user')
+        return getRepository(UserEntity).createQueryBuilder('user')
             .leftJoinAndSelect('user.projects', 'project')
             .where('user.id = :id', { id })
             .getOne();
@@ -28,37 +32,44 @@ export class UserRepository extends Repository<UserEntity> implements IUserRepos
 
 
     async findOneUser(id: number): Promise<UserEntity | null> {
-        return await this.findOne(id);
+        return await getRepository(UserEntity).findOne(id);
     }
 
 
     async createOne(entity: UserEntity): Promise<UserEntity> {
-        return await this.save(entity);
+        return await getRepository(UserEntity).save(entity);
     }
 
     async findOneByEmail(email: string): Promise<UserEntity> {
-        return this.createQueryBuilder('user')
+        return getRepository(UserEntity).createQueryBuilder('user')
             .where('user.email = :email', { email })
             .getOne();
     }
 
     async updateOne(id: number, entity: UserEntity): Promise<any> {
-        await this.update(id, entity);
-        return this.save(entity);
+        await getRepository(UserEntity).update(id, entity);
+        return getRepository(UserEntity).save(entity);
     }
 
     async deleteOne(id: number): Promise<any> {
-        return await this.softDelete(id);
+        return await getRepository(UserEntity).softDelete(id);
     }
 
     async restoreOne(id: number): Promise<any> {
-        return await this.restore(id);
+        return await getRepository(UserEntity).restore(id);
     }
 
     async getUsersOfProjects(projectId: number): Promise<UserEntity[]> {
-        return await this.createQueryBuilder('user')
+        return await getRepository(UserEntity).createQueryBuilder('user')
             .leftJoinAndSelect('user.projects', 'project')
             .where('project.id = :projectId', { projectId })
+            .getMany();
+    }
+
+    async getUsersOfTask(taskId: number): Promise<UserEntity[]> {
+        return await getRepository(UserEntity).createQueryBuilder('user')
+            .leftJoinAndSelect('user.tasks', 'task')
+            .where('task.id = :taskId', { taskId })
             .getMany();
     }
 }

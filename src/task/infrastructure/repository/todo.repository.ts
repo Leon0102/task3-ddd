@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, getRepository, Repository } from 'typeorm';
 
 import { TodoEntity } from 'src/task/domain/todo/todo.entity';
 import { ITodoRepository } from 'src/task/domain/todo/todo.repository';
@@ -11,25 +11,29 @@ export class TodoRepository extends Repository<TodoEntity> implements ITodoRepos
         return exist ? true : false;
     }
 
+    async saveOne(entity: TodoEntity): Promise<TodoEntity> {
+        return await getRepository(TodoEntity).save(entity);
+    }
+
     async createOne(entity: TodoEntity): Promise<TodoEntity> {
-        return await this.save(entity);
+        return await getRepository(TodoEntity).save(entity);
     }
     async findAll(): Promise<TodoEntity[]> {
-        return await this.find();
+        return await getRepository(TodoEntity).find();
     }
 
     async deleteOne(id: number): Promise<any> {
-        return await this.softDelete(id);
+        return await getRepository(TodoEntity).softDelete(id);
     }
 
     async removeOne(todo: TodoEntity): Promise<any> {
-        return await this.remove(todo);
+        return await getRepository(TodoEntity).remove(todo);
     }
 
     async getOne(id: number): Promise<TodoEntity> {
-        return await this.findOne(id);
+        return await getRepository(TodoEntity).findOne(id);
     }
     async updateOne(id: number, entity: TodoEntity): Promise<any> {
-        return await this.update(id, entity);
+        return await getRepository(TodoEntity).update(id, entity);
     }
 }

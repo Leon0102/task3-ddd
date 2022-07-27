@@ -11,4 +11,5 @@ export interface IUserRepository extends IGenericRepository<UserEntity> {
     getUsersOfProjects(projectId: number): Promise<UserEntity[]>;
     restoreOne(id: number): Promise<any>;
     findOneUser(id: number): Promise<UserEntity | null>;
+    getUsersOfTask(taskId: number): Promise<UserEntity[]>;
 }
